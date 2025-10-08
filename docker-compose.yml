@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  model-service:
+    build:
+      context: ./models
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  web-ui:
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - model-service
+    environment:
+      - API_URL=http://model-service:8000
+    restart: unless-stopped

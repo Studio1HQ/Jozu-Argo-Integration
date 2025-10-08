@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "text-classification-model-basic"
+  labels:
+    app: "text-classification-model-basic"
+spec:
+  containers:
+    - name: "basic-serve"
+      image: "jozu.ml/siddhesh-bangar/text-classification-model/basic:latest"
+      command: ["tail"]
+      args: ["-f", "/dev/null"]

@@ -1,0 +1,14 @@
+{
+  "name": "text-classification-model",
+  "version": "1.0.0",
+  "description": "Simple text classification model for sentiment analysis",
+  "framework": "scikit-learn",
+  "task": "text-classification",
+  "input_type": "text",
+  "output_type": "classification",
+  "classes": [
+    "negative",
+    "positive"
+  ],
+  "model_file": "model.pkl"
+}

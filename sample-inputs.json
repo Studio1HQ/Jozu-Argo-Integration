@@ -1,0 +1,24 @@
+{
+  "inputs": [
+    {
+      "id": "query-1",
+      "text": "I love this product, it's amazing!"
+    },
+    {
+      "id": "query-2",
+      "text": "This is terrible, worst purchase ever"
+    },
+    {
+      "id": "query-3",
+      "text": "Great quality, would recommend to everyone"
+    },
+    {
+      "id": "query-4",
+      "text": "Poor customer service, very disappointed"
+    },
+    {
+      "id": "query-5",
+      "text": "Excellent value for money, exceeded expectations"
+    }
+  ]
+}

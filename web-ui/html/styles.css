@@ -1,0 +1,52 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+textarea {
+    resize: none;
+}
+
+.progress {
+    height: 25px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.sample-text {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sample-text:hover {
+    background-color: #e9ecef;
+}
+
+#result-container {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}

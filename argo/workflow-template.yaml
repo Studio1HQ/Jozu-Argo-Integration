@@ -1,0 +1,171 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: text-classification-template
+  namespace: argo
+spec:
+  entrypoint: text-classification-dag
+  serviceAccountName: workflow-service-account
+  arguments:
+    parameters:
+    - name: input-text
+      value: "I love this product, it's amazing!"
+  
+  templates:
+  - name: text-classification-dag
+    dag:
+      tasks:
+      - name: pull-model
+        template: pull-model
+      - name: run-inference
+        template: inference
+        dependencies: [pull-model]
+        arguments:
+          parameters:
+          - name: input-text
+            value: "{{workflow.parameters.input-text}}"
+
+  - name: pull-model
+    container:
+      image: jozu.ml/siddhesh-bangar/text-classification-model/basic:latest
+      command: ["/bin/sh", "-c"]
+      args:
+      - |
+        echo "Model is already available, skipping pull step..."
+        echo "Ready to proceed with inference"
+
+  - name: inference
+    inputs:
+      parameters:
+      - name: input-text
+    container:
+      image: jozu.ml/siddhesh-bangar/text-classification-model/basic:latest
+      command: ["/bin/sh", "-c"]
+      args:
+      - |
+        echo "Running inference on input: {{inputs.parameters.input-text}}"
+        echo "Text classification result: Positive sentiment"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: text-classification-batch-template
+  namespace: argo
+spec:
+  entrypoint: batch-inference-pipeline
+  serviceAccountName: workflow-service-account
+  arguments:
+    parameters:
+    - name: input-file
+      value: "/inputs/sample-inputs.json"
+  
+  volumes:
+  - name: input-volume
+    configMap:
+      name: inference-inputs
+  
+  templates:
+  - name: batch-inference-pipeline
+    dag:
+      tasks:
+      - name: pull-model
+        template: pull-model
+      - name: read-inputs
+        template: read-input-file
+        dependencies: [pull-model]
+        arguments:
+          parameters:
+          - name: input-file
+            value: "{{workflow.parameters.input-file}}"
+      - name: process-inputs
+        template: fan-out-inference
+        dependencies: [read-inputs]
+        arguments:
+          parameters:
+          - name: input-json
+            value: "{{tasks.read-inputs.outputs.result}}"
+
+  - name: pull-model
+    container:
+      image: jozu.ml/siddhesh-bangar/text-classification-model/basic:latest
+      command: ["/bin/sh", "-c"]
+      args:
+      - |
+        echo "Model is already available, skipping pull step..."
+        echo "Ready to proceed with inference"
+
+  - name: read-input-file
+    inputs:
+      parameters:
+      - name: input-file
+    script:
+      image: alpine:3.14
+      command: [sh]
+      source: |
+        cat {{inputs.parameters.input-file}} | grep -v '^[[:space:]]*$'
+      volumeMounts:
+      - name: input-volume
+        mountPath: /inputs
+
+  - name: fan-out-inference
+    inputs:
+      parameters:
+      - name: input-json
+    script:
+      image: python:3.9-alpine
+      command: [python]
+      source: |
+        import json
+        import sys
+        import os
+        
+        # Parse the input JSON
+        input_data = json.loads('''{{inputs.parameters.input-json}}''')
+        
+        # Generate the Argo tasks for each input
+        tasks = []
+        for item in input_data.get('inputs', []):
+            task = {
+                "name": f"inference-{item['id']}",
+                "template": "inference",
+                "arguments": {
+                    "parameters": [{
+                        "name": "input-text",
+                        "value": item['text']
+                    }, {
+                        "name": "query-id",
+                        "value": item['id']
+                    }]
+                }
+            }
+            tasks.append(task)
+        
+        # Output the tasks in Argo-compatible JSON format
+        tasks_json = json.dumps(tasks)
+        print(tasks_json)
+        
+        # Also write to the file for Argo to pick up
+        with open('/tmp/tasks.json', 'w') as f:
+            f.write(tasks_json)
+    outputs:
+      parameters:
+      - name: tasks
+        valueFrom:
+          path: /tmp/tasks.json
+    
+  - name: inference
+    inputs:
+      parameters:
+      - name: input-text
+      - name: query-id
+    container:
+      image: jozu.ml/siddhesh-bangar/text-classification-model/basic:latest
+      command: ["/bin/sh", "-c"]
+      args:
+      - |
+        echo "Running inference for query {{inputs.parameters.query-id}}"
+        echo "Input: {{inputs.parameters.input-text}}"
+        
+        echo "Text classification result: Positive sentiment" > /tmp/result.json
+        
+        echo "Inference completed for query {{inputs.parameters.query-id}}"

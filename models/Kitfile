@@ -1,0 +1,14 @@
+manifestVersion: 1.0.0
+package:
+  name: text-classification-model
+  description: Simple text classification model for sentiment analysis using scikit-learn
+  authors: [siddhesh-bangar]
+model:
+  name: model
+  path: model.pkl
+  parts:
+    - path: model_info.json
+    - path: requirements.txt
+    - path: sample-inputs.json
+code:
+  - path: .

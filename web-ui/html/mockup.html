@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web UI Mockup - Sentiment Analysis Model</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4285f4;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .main-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        .button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .result-positive {
+            color: #0f9d58;
+            font-weight: bold;
+        }
+        .result-negative {
+            color: #db4437;
+            font-weight: bold;
+        }
+        .progress-container {
+            margin-top: 15px;
+        }
+        .progress-bar {
+            height: 20px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .progress-positive {
+            background-color: #0f9d58;
+            width: 75%;
+        }
+        .progress-negative {
+            background-color: #db4437;
+            width: 25%;
+        }
+        .sample-texts {
+            margin-top: 20px;
+        }
+        .sample-text-button {
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sentiment Analysis Model</h1>
+            <p>Powered by KitOps + Jozu Hub</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Enter Text for Analysis</h2>
+                <textarea placeholder="Type or paste your text here...">I love this product, it's amazing!</textarea>
+                <button class="button">Analyze Sentiment</button>
+            </div>
+            
+            <div class="result-section">
+                <h2>Analysis Result</h2>
+                <p>Sentiment: <span class="result-positive">Positive</span></p>
+                <p>Confidence: <span class="result-positive">92%</span></p>
+                
+                <div class="progress-container">
+                    <p>Positive:</p>
+                    <div class="progress-bar progress-positive"></div>
+                    <p>92%</p>
+                    
+                    <p>Negative:</p>
+                    <div class="progress-bar progress-negative"></div>
+                    <p>8%</p>
+                </div>
+            </div>
+            
+            <div class="sample-texts">
+                <h3>Sample Texts</h3>
+                <div class="sample-text-button">I love this product, it's amazing!</div>
+                <div class="sample-text-button">This is terrible, worst purchase ever</div>
+                <div class="sample-text-button">Great quality, would recommend to everyone</div>
+                <div class="sample-text-button">Poor customer service, very disappointed</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This is a mockup of the web UI for the sentiment analysis model.</p>
+            <p>© 2025 KitOps + Jozu Hub Integration</p>
+        </div>
+    </div>
+</body>
+</html>

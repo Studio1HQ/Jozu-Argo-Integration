@@ -1,0 +1,24 @@
+{
+  "inputs": [
+    {
+      "id": "1",
+      "text": "I love this product, it's amazing!"
+    },
+    {
+      "id": "2",
+      "text": "This service is terrible, I want a refund."
+    },
+    {
+      "id": "3",
+      "text": "The quality is okay but the price is too high."
+    },
+    {
+      "id": "4",
+      "text": "I'm not sure if I would recommend this to others."
+    },
+    {
+      "id": "5",
+      "text": "Best purchase I've made all year!"
+    }
+  ]
+}

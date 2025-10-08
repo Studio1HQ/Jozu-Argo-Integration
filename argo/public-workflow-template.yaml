@@ -1,0 +1,246 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: text-classification-public-template
+  namespace: argo
+spec:
+  entrypoint: text-classification-dag
+  arguments:
+    parameters:
+    - name: input-text
+      value: "I love this product, it's amazing!"
+  
+  templates:
+  - name: text-classification-dag
+    dag:
+      tasks:
+      - name: run-inference
+        template: inference
+        arguments:
+          parameters:
+          - name: input-text
+            value: "{{workflow.parameters.input-text}}"
+
+  - name: inference
+    inputs:
+      parameters:
+      - name: input-text
+    container:
+      image: python:3.9-slim
+      command: ["/bin/bash", "-c"]
+      args:
+      - |
+        echo "Running inference on input: {{inputs.parameters.input-text}}"
+        
+        # Install required packages
+        pip install scikit-learn numpy pandas
+        
+        # Create a simple sentiment analysis script
+        cat > /tmp/sentiment.py << EOF
+        import sys
+        import re
+        import numpy as np
+        from sklearn.feature_extraction.text import CountVectorizer
+        
+        # Simple sentiment analysis function
+        def analyze_sentiment(text):
+            # Simple rule-based sentiment analysis
+            positive_words = ['love', 'great', 'good', 'amazing', 'excellent', 'best']
+            negative_words = ['hate', 'bad', 'terrible', 'worst', 'awful', 'poor', 'refund']
+            
+            text = text.lower()
+            
+            # Count positive and negative words
+            positive_count = sum(1 for word in positive_words if word in text)
+            negative_count = sum(1 for word in negative_words if word in text)
+            
+            # Calculate sentiment score
+            if positive_count > negative_count:
+                sentiment = "positive"
+                confidence = min(0.5 + (positive_count - negative_count) * 0.1, 0.95)
+            elif negative_count > positive_count:
+                sentiment = "negative"
+                confidence = min(0.5 + (negative_count - positive_count) * 0.1, 0.95)
+            else:
+                sentiment = "neutral"
+                confidence = 0.5
+                
+            # Create result dictionary
+            result = {
+                "prediction": sentiment,
+                "confidence": round(confidence, 2),
+                "probabilities": {
+                    "negative": round(1 - confidence if sentiment == "positive" else confidence if sentiment == "negative" else 0.5, 2),
+                    "positive": round(confidence if sentiment == "positive" else 1 - confidence if sentiment == "negative" else 0.5, 2)
+                }
+            }
+            
+            return result
+        
+        # Get input from command line
+        if len(sys.argv) > 1:
+            text = sys.argv[1]
+            result = analyze_sentiment(text)
+            print(result)
+        EOF
+        
+        # Run the sentiment analysis
+        python /tmp/sentiment.py "{{inputs.parameters.input-text}}"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: text-classification-batch-public-template
+  namespace: argo
+spec:
+  entrypoint: batch-inference-pipeline
+  arguments:
+    parameters:
+    - name: input-file
+      value: "/inputs/sample-inputs.json"
+  
+  volumes:
+  - name: input-volume
+    configMap:
+      name: inference-inputs
+  
+  templates:
+  - name: batch-inference-pipeline
+    dag:
+      tasks:
+      - name: read-inputs
+        template: read-input-file
+        arguments:
+          parameters:
+          - name: input-file
+            value: "{{workflow.parameters.input-file}}"
+      - name: process-inputs
+        template: fan-out-inference
+        dependencies: [read-inputs]
+        arguments:
+          parameters:
+          - name: input-json
+            value: "{{tasks.read-inputs.outputs.result}}"
+
+  - name: read-input-file
+    inputs:
+      parameters:
+      - name: input-file
+    script:
+      image: alpine:3.14
+      command: [sh]
+      source: |
+        cat {{inputs.parameters.input-file}} | grep -v '^[[:space:]]*$'
+      volumeMounts:
+      - name: input-volume
+        mountPath: /inputs
+
+  - name: fan-out-inference
+    inputs:
+      parameters:
+      - name: input-json
+    script:
+      image: python:3.9-alpine
+      command: [python]
+      source: |
+        import json
+        import sys
+        
+        # Parse the input JSON
+        input_data = json.loads('''{{inputs.parameters.input-json}}''')
+        
+        # Generate the Argo tasks for each input
+        tasks = []
+        for item in input_data.get('inputs', []):
+            task = {
+                "name": f"inference-{item['id']}",
+                "template": "inference",
+                "arguments": {
+                    "parameters": [{
+                        "name": "input-text",
+                        "value": item['text']
+                    }, {
+                        "name": "query-id",
+                        "value": item['id']
+                    }]
+                }
+            }
+            tasks.append(task)
+        
+        # Output the tasks in Argo-compatible JSON format
+        print(json.dumps(tasks))
+    outputs:
+      parameters:
+      - name: tasks
+        valueFrom:
+          path: /tmp/tasks.json
+    
+  - name: inference
+    inputs:
+      parameters:
+      - name: input-text
+      - name: query-id
+    container:
+      image: python:3.9-slim
+      command: ["/bin/bash", "-c"]
+      args:
+      - |
+        echo "Running inference for query {{inputs.parameters.query-id}}"
+        echo "Input: {{inputs.parameters.input-text}}"
+        
+        # Install required packages
+        pip install scikit-learn numpy pandas
+        
+        # Create a simple sentiment analysis script
+        cat > /tmp/sentiment.py << EOF
+        import sys
+        import re
+        import numpy as np
+        from sklearn.feature_extraction.text import CountVectorizer
+        
+        # Simple sentiment analysis function
+        def analyze_sentiment(text):
+            # Simple rule-based sentiment analysis
+            positive_words = ['love', 'great', 'good', 'amazing', 'excellent', 'best']
+            negative_words = ['hate', 'bad', 'terrible', 'worst', 'awful', 'poor', 'refund']
+            
+            text = text.lower()
+            
+            # Count positive and negative words
+            positive_count = sum(1 for word in positive_words if word in text)
+            negative_count = sum(1 for word in negative_words if word in text)
+            
+            # Calculate sentiment score
+            if positive_count > negative_count:
+                sentiment = "positive"
+                confidence = min(0.5 + (positive_count - negative_count) * 0.1, 0.95)
+            elif negative_count > positive_count:
+                sentiment = "negative"
+                confidence = min(0.5 + (negative_count - positive_count) * 0.1, 0.95)
+            else:
+                sentiment = "neutral"
+                confidence = 0.5
+                
+            # Create result dictionary
+            result = {
+                "prediction": sentiment,
+                "confidence": round(confidence, 2),
+                "probabilities": {
+                    "negative": round(1 - confidence if sentiment == "positive" else confidence if sentiment == "negative" else 0.5, 2),
+                    "positive": round(confidence if sentiment == "positive" else 1 - confidence if sentiment == "negative" else 0.5, 2)
+                }
+            }
+            
+            return result
+        
+        # Get input from command line
+        if len(sys.argv) > 1:
+            text = sys.argv[1]
+            result = analyze_sentiment(text)
+            print(result)
+        EOF
+        
+        # Run the sentiment analysis and save to result file
+        python /tmp/sentiment.py "{{inputs.parameters.input-text}}" | tee /tmp/result.json
+        
+        echo "Inference completed for query {{inputs.parameters.query-id}}"

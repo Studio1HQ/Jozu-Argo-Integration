@@ -1,0 +1,60 @@
+name: Model Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'models/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up KitOps CLI
+      run: |
+        curl -sSL https://get.kitops.org | sh
+        echo "$HOME/.kit/bin" >> $GITHUB_PATH
+      
+    - name: Login to Jozu Hub
+      run: |
+        echo "${{ secrets.JOZU_HUB_TOKEN }}" | kit login jozu.ml --password-stdin
+      
+    - name: Package model with KitOps
+      run: |
+        cd models
+        kit pack . -t jozu.ml/${{ secrets.JOZU_USERNAME }}/llama3-inference:latest
+      
+    - name: Push ModelKit to Jozu Hub
+      run: |
+        kit push jozu.ml/${{ secrets.JOZU_USERNAME }}/llama3-inference:latest
+      
+    - name: Wait for Jozu Hub processing
+      run: |
+        echo "Waiting for Jozu Hub to process the ModelKit..."
+        sleep 30
+      
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      
+    - name: Configure Kubernetes
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+        export KUBECONFIG=./kubeconfig.yaml
+      
+    - name: Update workflow YAML
+      run: |
+        sed -i "s|jozu.ml/your-username/llama3-inference:latest|jozu.ml/${{ secrets.JOZU_USERNAME }}/llama3-inference:latest|g" workflow/batch-inference-workflow.yaml
+      
+    - name: Deploy Argo workflow
+      run: |
+        kubectl apply -f workflow/batch-inference-workflow.yaml
+      
+    - name: Check workflow status
+      run: |
+        echo "Checking workflow status..."
+        kubectl get workflows
