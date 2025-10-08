@@ -74,8 +74,6 @@ kitops-jozu-workflow/
 ./test-local.sh
 ```
 
-Access the web UI at http://localhost:8080
-
 ### Step 3: Direct Pod Deployment (Optional)
 
 ```bash
@@ -85,8 +83,6 @@ Access the web UI at http://localhost:8080
 # Once deployed, access the pod shell
 kubectl exec -it text-classification-model-basic -- /bin/bash
 ```
-
-See the [Model Interaction Guide](MODEL_INTERACTION_GUIDE.md) for details on how to interact with the model.
 
 ### Step 4: Kubernetes Deployment (Optional)
 
@@ -122,17 +118,6 @@ kubectl apply -f argo/public-workflow-template.yaml -n argo
 - **Direct Pod Interaction**: Ability to deploy and interact with the model directly as a Kubernetes pod
 - **Public Image Workflows**: Option to run workflows using only publicly available images
 
-## Documentation
-
-- [Deployment Guide](docs/DEPLOYMENT.md) - Detailed instructions for deployment
-- [Integration Guide](docs/INTEGRATION.md) - How KitOps, Jozu Hub, and Argo Workflows integrate
-- [Workflow Diagram](docs/workflow-diagram.md) - Visual representation of the architecture
-- [Argo Workflow Guide](argo/README.md) - Instructions for using Argo Workflows
-- [Argo UI Access Guide](docs/ARGO_UI_ACCESS_GUIDE.md) - How to set up port forwarding and access the Argo UI
-- [End-to-End Guide](docs/END_TO_END_GUIDE.md) - Complete walkthrough with real commands and outputs
-- [Model Interaction Guide](docs/MODEL_INTERACTION_GUIDE.md) - How to interact with the deployed model pod
-- [Project Structure](PROJECT_STRUCTURE.md) - Detailed explanation of the project structure
-
 ## Prerequisites
 
 - Docker and Docker Compose for local deployment
@@ -151,7 +136,3 @@ To clean up unnecessary files and organize the project structure:
 ```
 
 This will remove redundant files and organize documentation into a dedicated `docs` directory.
-
-## License
-
-This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
