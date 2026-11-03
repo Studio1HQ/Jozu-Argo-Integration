@@ -1,5 +1,7 @@
 # KitOps + Jozu Hub + Argo Workflow Integration
 
+[![Packaged with KitOps](https://img.shields.io/badge/Packaged%20with-KitOps-FFAF52?labelColor=363636)](https://kitops.org)
+
 This project demonstrates how to deploy a machine learning model using KitOps, Jozu Hub, and Argo Workflows, making it accessible to third-party users through Docker or Kubernetes.
 
 ## Overview
